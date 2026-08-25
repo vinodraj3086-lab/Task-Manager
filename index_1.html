@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Task Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+    background: #F4F6FA;
+    color: #1E2536;
+  }
+  .header-band {
+    background: linear-gradient(120deg, #1B3B6F 0%, #2E5C8A 55%, #3E7CB1 100%);
+    padding: 40px 20px 56px;
+    color: #fff;
+  }
+  .header-inner { max-width: 1080px; margin: 0 auto; }
+  .wrap { max-width: 1080px; margin: -34px auto 0; padding: 0 20px 60px; }
+  h1 { font-family: 'Fraunces', serif; font-size: 34px; font-weight: 600; margin: 0; color: #fff; }
+  .eyebrow { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: #BFD6EE; font-weight: 700; margin-bottom: 8px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 14px; margin: 0 0 28px; }
+  .card { background: #fff; border: 1px solid #E1E6EF; border-left: 4px solid #3E7CB1; border-radius: 12px; padding: 16px 18px; box-shadow: 0 2px 10px rgba(30,53,90,0.06); }
+  .card .label { font-size: 12px; color: #6B7690; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; font-weight: 600; }
+  .card .value { font-family: 'Fraunces', serif; font-size: 30px; font-weight: 700; }
+  .panel { background: #fff; border: 1px solid #E1E6EF; border-radius: 12px; padding: 18px 22px; margin-bottom: 24px; box-shadow: 0 2px 10px rgba(30,53,90,0.05); }
+  .panel .title { font-size: 13px; font-weight: 700; color: #6B7690; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+  .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  .pillrow { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pillbtn { padding: 6px 14px; border-radius: 20px; border: 1.5px solid #D8DEEA; background: #fff; color: #5B6584; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s ease; }
+  .pillbtn:hover { border-color: #3E7CB1; color: #1B3B6F; }
+  .pillbtn.active { border-color: #1B3B6F; background: #1B3B6F; color: #fff; }
+  .pillbtn.freq.active { border-color: #7C4DAB; background: #7C4DAB; color: #fff; }
+  .addbtn { display: flex; align-items: center; gap: 6px; padding: 10px 18px; border-radius: 8px; border: none; background: linear-gradient(120deg,#E0663B,#D64550); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; box-shadow: 0 3px 10px rgba(214,69,80,0.3); }
+  .addbtn:hover { filter: brightness(1.06); }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 14px; }
+  label.field { display: block; font-size: 12.5px; color: #5B6584; font-weight: 700; }
+  .field-inner { margin-top: 5px; }
+  input, select, textarea {
+    width: 100%; padding: 8px 10px; border: 1.5px solid #D8DEEA; border-radius: 6px;
+    font-size: 14px; font-family: inherit; color: #1E2536; background: #F7F9FC;
+  }
+  input:focus, select:focus, textarea:focus { border-color: #3E7CB1; }
+  textarea { resize: vertical; }
+  .saverow { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-primary { padding: 9px 18px; border-radius: 8px; border: none; background: #1B3B6F; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; }
+  .btn-secondary { padding: 9px 18px; border-radius: 8px; border: 1.5px solid #D8DEEA; background: #fff; color: #5B6584; font-weight: 700; font-size: 14px; cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; background: #fff; border: 1px solid #E1E6EF; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(30,53,90,0.05); }
+  th, td { text-align: left; padding: 13px 14px; font-size: 14px; }
+  thead tr { background: #1B3B6F; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: #DCE7F5; }
+  tbody tr { border-top: 1px solid #EEF1F7; border-left: 4px solid transparent; }
+  tbody tr:hover { background: #F4F8FC; }
+  tbody tr.pri-High { border-left-color: #D64550; }
+  tbody tr.pri-Medium { border-left-color: #D99A2B; }
+  tbody tr.pri-Low { border-left-color: #2F9E6E; }
+  .pill { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; display: inline-block; }
+  .status-select { border: 1.5px solid #D8DEEA; border-radius: 20px; padding: 5px 10px; font-size: 12.5px; font-weight: 700; background: #fff; cursor: pointer; }
+  .notes-input { border: 1.5px solid #D8DEEA; border-radius: 6px; padding: 6px 8px; font-size: 13px; font-family: inherit; background: #F7F9FC; color: #1E2536; }
+  .edit-input { border: 1px solid transparent; border-radius: 6px; padding: 6px 8px; font-size: 14px; font-family: inherit; background: transparent; color: #1E2536; width: 100%; }
+  .edit-input:hover { border-color: #D8DEEA; background: #F7F9FC; }
+  .action-edit { resize: vertical; min-height: 38px; }
+  .empty { text-align: center; padding: 60px 20px; color: #8A93AC; background: #fff; border: 1.5px dashed #D8DEEA; border-radius: 12px; }
+  .del-btn { border: none; background: none; color: #D64550; cursor: pointer; font-size: 16px; }
+  .banner { background: #FCE9E9; border: 1px solid #F2C4C7; color: #B03040; padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; }
+  .reminder-banner { background: #E8F1FA; border: 1px solid #C3DCF0; color: #1B3B6F; padding: 10px 14px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .reminder-banner button { padding: 6px 12px; border-radius: 6px; border: none; background: #1B3B6F; color: #fff; font-size: 13px; font-weight: 700; cursor: pointer; }
+  @media (max-width: 720px) {
+    .desktop-table { display: none; }
+    .cards { display: block !important; }
+  }
+  @media (min-width: 721px) { .cards { display: none; } }
+  .taskcard { background: #fff; border: 1px solid #E1E6EF; border-left: 4px solid #3E7CB1; border-radius: 12px; padding: 14px; margin-bottom: 10px; box-shadow: 0 2px 8px rgba(30,53,90,0.05); }
+  .taskcard.pri-High { border-left-color: #D64550; }
+  .taskcard.pri-Medium { border-left-color: #D99A2B; }
+  .taskcard.pri-Low { border-left-color: #2F9E6E; }
+  .taskcard .top { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: #8A93AC; }
+  .taskcard .action { font-size: 15px; margin-bottom: 10px; }
+  .taskcard .metaRow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+</style>
+</head>
+<body>
+<div class="header-band">
+  <div class="header-inner">
+    <div class="eyebrow">Daily Task Ledger</div>
+    <h1 id="dateHeading"></h1>
+  </div>
+</div>
+<div class="wrap">
+  <div id="notifBannerSlot"></div>
+  <div id="errorSlot"></div>
+
+  <div class="stats" id="statsSlot"></div>
+  <div class="panel" id="dailyStatsPanel" style="display:none;">
+    <div class="title">Completions by day</div>
+    <div id="dailyStatsRow" style="display:flex; gap:20px; flex-wrap:wrap; font-size:14px;"></div>
+  </div>
+
+  <div class="controls">
+    <div class="pillrow" id="statusFilterRow"></div>
+    <div class="pillrow" id="freqFilterRow"></div>
+    <button class="addbtn" id="toggleFormBtn">+ Add task</button>
+  </div>
+
+  <div class="panel" id="formPanel" style="display:none;">
+    <div class="form-grid">
+      <label class="field">Date received<div class="field-inner"><input type="date" id="f_dateReceived"></div></label>
+      <label class="field">Priority<div class="field-inner">
+        <select id="f_priority"><option>High</option><option selected>Medium</option><option>Low</option></select>
+      </div></label>
+      <label class="field">Target completion date<div class="field-inner"><input type="date" id="f_completionDate"></div></label>
+      <label class="field">Status<div class="field-inner">
+        <select id="f_status"><option selected>Pending</option><option>In Progress</option><option>Completed</option></select>
+      </div></label>
+      <label class="field">Frequency<div class="field-inner">
+        <select id="f_frequency"><option selected>Daily</option><option>Weekly</option><option>Monthly</option><option>One-time</option></select>
+      </div></label>
+    </div>
+    <label class="field">Daily action item<div class="field-inner"><textarea id="f_action" rows="2" placeholder="What needs to get done?"></textarea></div></label>
+    <label class="field">Daily working status / notes<div class="field-inner"><textarea id="f_workingNotes" rows="2" placeholder="e.g. Called vendor, waiting on reply..."></textarea></div></label>
+    <div class="saverow">
+      <button class="btn-primary" id="saveTaskBtn">Save task</button>
+      <button class="btn-secondary" id="cancelFormBtn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="tableSlot"></div>
+</div>
+
+<script>
+const PRIORITY = {
+  High: { rank: 0, color: '#B03040', bg: '#FCE9E9' },
+  Medium: { rank: 1, color: '#A66A15', bg: '#FBF0DD' },
+  Low: { rank: 2, color: '#227A54', bg: '#E4F5EC' },
+};
+const FREQUENCY = {
+  Daily: { color: '#1B3B6F', bg: '#E8F1FA' },
+  Weekly: { color: '#6B3FA0', bg: '#EFE6F8' },
+  Monthly: { color: '#B0630F', bg: '#FCEEDF' },
+  'One-time': { color: '#5B6584', bg: '#EEF1F7' },
+};
+const STATUS_COLORS = {
+  Pending: '#A66A15', 'In Progress': '#1B3B6F', Completed: '#227A54', Overdue: '#B03040',
+};
+const STORAGE_KEY = 'tm_tasks_v1';
+const NOTIF_KEY = 'tm_notif_enabled_v1';
+
+let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let filter = 'All';
+let freqFilter = 'All';
+
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function addDays(dateStr, days) {
+  const d = new Date((dateStr || todayISO()) + 'T00:00:00');
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0,10);
+}
+function nextOccurrenceDate(dateStr, frequency) {
+  if (frequency === 'Weekly') return addDays(dateStr, 7);
+  if (frequency === 'Monthly') return addDays(dateStr, 30);
+  return null;
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); render(); }
+
+function computeStatuses() {
+  const t = todayISO();
+  return tasks.map(task => {
+    if (task.status !== 'Completed' && task.completionDate && task.completionDate < t) {
+      return { ...task, status: 'Overdue' };
+    }
+    return task;
+  });
+}
+
+function sortedTasks() {
+  const computed = computeStatuses();
+  return computed.sort((a,b) => {
+    if (a.status === 'Completed' && b.status !== 'Completed') return 1;
+    if (b.status === 'Completed' && a.status !== 'Completed') return -1;
+    const pr = PRIORITY[a.priority].rank - PRIORITY[b.priority].rank;
+    if (pr !== 0) return pr;
+    return (a.completionDate || '9999').localeCompare(b.completionDate || '9999');
+  });
+}
+
+document.getElementById('dateHeading').textContent =
+  "Today's board, " + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+document.getElementById('f_dateReceived').value = todayISO();
+
+document.getElementById('toggleFormBtn').onclick = () => {
+  const p = document.getElementById('formPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+};
+document.getElementById('cancelFormBtn').onclick = () => {
+  document.getElementById('formPanel').style.display = 'none';
+};
+document.getElementById('saveTaskBtn').onclick = () => {
+  const action = document.getElementById('f_action').value.trim();
+  if (!action) return;
+  const workingNotes = document.getElementById('f_workingNotes').value.trim();
+  let status = document.getElementById('f_status').value;
+  if (workingNotes && status === 'Pending') status = 'In Progress';
+  tasks.push({
+    id: Date.now(),
+    dateReceived: document.getElementById('f_dateReceived').value,
+    action,
+    completionDate: document.getElementById('f_completionDate').value,
+    priority: document.getElementById('f_priority').value,
+    status,
+    frequency: document.getElementById('f_frequency').value,
+    workingNotes,
+    completedOn: status === 'Completed' ? todayISO() : null,
+  });
+  document.getElementById('f_action').value = '';
+  document.getElementById('f_workingNotes').value = '';
+  document.getElementById('f_completionDate').value = '';
+  document.getElementById('f_dateReceived').value = todayISO();
+  document.getElementById('formPanel').style.display = 'none';
+  save();
+};
+
+function updateStatus(id, status) {
+  const target = tasks.find(t => t.id === id);
+  tasks = tasks.map(t => t.id === id ? { ...t, status, completedOn: status === 'Completed' ? todayISO() : null } : t);
+  if (target && status === 'Completed' && (target.frequency === 'Weekly' || target.frequency === 'Monthly' || target.frequency === 'Daily')) {
+    const base = target.completionDate || todayISO();
+    const nextDue = target.frequency === 'Daily' ? addDays(base, 1) : nextOccurrenceDate(base, target.frequency);
+    tasks.push({
+      id: Date.now() + Math.floor(Math.random()*1000),
+      dateReceived: todayISO(),
+      action: target.action,
+      completionDate: nextDue,
+      priority: target.priority,
+      status: 'Pending',
+      frequency: target.frequency,
+      completedOn: null,
+      recurringFrom: target.id,
+    });
+  }
+  save();
+}
+function removeTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  save();
+}
+function updateNotes(id, value) {
+  tasks = tasks.map(t => {
+    if (t.id !== id) return t;
+    const trimmed = value.trim();
+    let status = t.status;
+    if (trimmed && status === 'Pending') status = 'In Progress';
+    return { ...t, workingNotes: trimmed, status, completedOn: status === 'Completed' ? t.completedOn : null };
+  });
+  save();
+}
+function updateField(id, field, value) {
+  tasks = tasks.map(t => t.id === id ? { ...t, [field]: value } : t);
+  save();
+}
+function escapeAttr(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+window.updateStatus = updateStatus;
+window.removeTask = removeTask;
+window.updateNotes = updateNotes;
+window.updateField = updateField;
+
+function render() {
+  const computed = computeStatuses();
+  const sorted = sortedTasks();
+  const today = todayISO();
+
+  // stats
+  const completedToday = computed.filter(t => t.status === 'Completed' && t.completedOn === today).length;
+  const openTotal = computed.filter(t => t.status !== 'Completed').length;
+  const overdue = computed.filter(t => t.status === 'Overdue').length;
+  const highOpen = computed.filter(t => t.priority === 'High' && t.status !== 'Completed').length;
+  document.getElementById('statsSlot').innerHTML = `
+    ${statCard('Completed today', completedToday, '#227A54')}
+    ${statCard('Total open', openTotal, '#1B3B6F')}
+    ${statCard('Overdue', overdue, '#B03040')}
+    ${statCard('High priority open', highOpen, '#B03040')}
+  `;
+
+  // daily completions
+  const byDate = {};
+  computed.forEach(t => { if (t.status === 'Completed' && t.completedOn) byDate[t.completedOn] = (byDate[t.completedOn]||0)+1; });
+  const dailyEntries = Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,5);
+  const dsPanel = document.getElementById('dailyStatsPanel');
+  if (dailyEntries.length) {
+    dsPanel.style.display = 'block';
+    document.getElementById('dailyStatsRow').innerHTML = dailyEntries.map(([date,count]) =>
+      `<div><span style="font-weight:700;color:#227A54">${count}</span> <span style="color:#5B6584">on ${fmtDate(date)}</span></div>`
+    ).join('');
+  } else { dsPanel.style.display = 'none'; }
+
+  // filter pills
+  const statuses = ['All','Pending','In Progress','Overdue','Completed'];
+  document.getElementById('statusFilterRow').innerHTML = statuses.map(s =>
+    `<button class="pillbtn ${filter===s?'active':''}" data-status="${s}">${s}</button>`
+  ).join('');
+  document.querySelectorAll('[data-status]').forEach(btn => {
+    btn.onclick = () => { filter = btn.dataset.status; render(); };
+  });
+  const freqs = ['All', ...Object.keys(FREQUENCY)];
+  document.getElementById('freqFilterRow').innerHTML = freqs.map(f =>
+    `<button class="pillbtn freq ${freqFilter===f?'active':''}" data-freq="${f}">${f}</button>`
+  ).join('');
+  document.querySelectorAll('[data-freq]').forEach(btn => {
+    btn.onclick = () => { freqFilter = btn.dataset.freq; render(); };
+  });
+
+  // filtered list
+  let filtered = filter === 'All' ? sorted : sorted.filter(t => t.status === filter);
+  filtered = freqFilter === 'All' ? filtered : filtered.filter(t => t.frequency === freqFilter);
+
+  const tableSlot = document.getElementById('tableSlot');
+  if (filtered.length === 0) {
+    tableSlot.innerHTML = `<div class="empty">No tasks here yet. Add one to get your board started.</div>`;
+    return;
+  }
+
+  const rows = filtered.map((task, idx) => {
+    const sno = idx + 1;
+    return `
+      <tr class="pri-${task.priority}">
+        <td>${sno}</td>
+        <td>${fmtDate(task.dateReceived)}</td>
+        <td style="max-width:320px;"><textarea class="edit-input action-edit" rows="1" onchange="updateField(${task.id}, 'action', this.value)">${escapeHtml(task.action)}</textarea></td>
+        <td>${freqSelect(task)}</td>
+        <td><input type="text" class="notes-input" value="${escapeAttr(task.workingNotes || '')}" placeholder="Add update..." onchange="updateNotes(${task.id}, this.value)" style="min-width:160px;"></td>
+        <td><input type="date" class="edit-input" value="${task.completionDate || ''}" onchange="updateField(${task.id}, 'completionDate', this.value)"></td>
+        <td>${prioritySelect(task)}</td>
+        <td>${statusSelect(task)}</td>
+        <td style="text-align:right;"><button class="del-btn" onclick="removeTask(${task.id})">✕</button></td>
+      </tr>`;
+  }).join('');
+
+  tableSlot.innerHTML = `
+    <div class="desktop-table">
+      <table>
+        <thead><tr><th>S.No</th><th>Received</th><th>Action item</th><th>Frequency</th><th>Working status</th><th>Completion date</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="cards">
+      ${filtered.map((task, idx) => `
+        <div class="taskcard pri-${task.priority}">
+          <div class="top"><span>#${idx+1} · ${fmtDate(task.dateReceived)}</span><button class="del-btn" onclick="removeTask(${task.id})">✕</button></div>
+          <textarea class="edit-input action-edit" rows="2" onchange="updateField(${task.id}, 'action', this.value)">${escapeHtml(task.action)}</textarea>
+          <div class="metaRow" style="margin-top:8px;">
+            ${prioritySelect(task)}
+            ${freqSelect(task)}
+            <input type="date" class="edit-input" value="${task.completionDate || ''}" onchange="updateField(${task.id}, 'completionDate', this.value)">
+            ${statusSelect(task)}
+          </div>
+          <div style="margin-top:8px;">
+            <input type="text" class="notes-input" value="${escapeAttr(task.workingNotes || '')}" placeholder="Add daily update..." onchange="updateNotes(${task.id}, this.value)" style="width:100%;">
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function statusSelect(task) {
+  const color = STATUS_COLORS[task.status] || STATUS_COLORS.Pending;
+  const opts = ['Pending','In Progress','Completed','Overdue'];
+  return `<select class="status-select" style="color:${color}" onchange="updateStatus(${task.id}, this.value)">
+    ${opts.map(o => `<option value="${o}" ${o===task.status?'selected':''}>${o}</option>`).join('')}
+  </select>`;
+}
+function freqSelect(task) {
+  const f = task.frequency || 'One-time';
+  const info = FREQUENCY[f] || FREQUENCY['One-time'];
+  return `<select class="status-select" style="color:${info.color};background:${info.bg}" onchange="updateField(${task.id}, 'frequency', this.value)">
+    ${Object.keys(FREQUENCY).map(o => `<option value="${o}" ${o===f?'selected':''}>${o}</option>`).join('')}
+  </select>`;
+}
+function prioritySelect(task) {
+  const info = PRIORITY[task.priority];
+  return `<select class="status-select" style="color:${info.color};background:${info.bg}" onchange="updateField(${task.id}, 'priority', this.value)">
+    ${Object.keys(PRIORITY).map(o => `<option value="${o}" ${o===task.priority?'selected':''}>${o}</option>`).join('')}
+  </select>`;
+}
+function statCard(label, value, accent) {
+  return `<div class="card" style="border-left-color:${accent}"><div class="label">${label}</div><div class="value" style="color:${accent}">${value}</div></div>`;
+}
+function escapeHtml(str) {
+  const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+}
+
+// ---------- Reminder / notification logic ----------
+function openTasksToday() {
+  const computed = computeStatuses();
+  const today = todayISO();
+  return computed.filter(t => t.status !== 'Completed' && (t.completionDate === today || (t.frequency === 'Daily')));
+}
+
+function renderNotifBanner() {
+  const slot = document.getElementById('notifBannerSlot');
+  const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+  const enabled = localStorage.getItem(NOTIF_KEY) === '1';
+  if (perm === 'granted' && enabled) {
+    slot.innerHTML = `<div class="reminder-banner">🔔 Pop-up reminders are ON — you'll get a browser alert for open daily tasks while this tab is open. <button id="disableNotifBtn">Turn off</button></div>`;
+    document.getElementById('disableNotifBtn').onclick = () => { localStorage.setItem(NOTIF_KEY,'0'); renderNotifBanner(); };
+  } else if (perm === 'unsupported') {
+    slot.innerHTML = '';
+  } else {
+    slot.innerHTML = `<div class="reminder-banner">Want a pop-up reminder for today's open tasks? <button id="enableNotifBtn">Enable reminders</button></div>`;
+    document.getElementById('enableNotifBtn').onclick = () => {
+      Notification.requestPermission().then(p => {
+        if (p === 'granted') { localStorage.setItem(NOTIF_KEY,'1'); checkAndNotify(true); }
+        renderNotifBanner();
+      });
+    };
+  }
+}
+
+let lastNotifiedCount = -1;
+function checkAndNotify(force) {
+  const enabled = localStorage.getItem(NOTIF_KEY) === '1';
+  if (!enabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const open = openTasksToday();
+  if (open.length === 0) return;
+  if (!force && open.length === lastNotifiedCount) return;
+  lastNotifiedCount = open.length;
+  const n = new Notification('Open tasks for today', {
+    body: `You have ${open.length} open task${open.length>1?'s':''} to complete today.`,
+  });
+  n.onclick = () => window.focus();
+}
+
+renderNotifBanner();
+render();
+// Check every 30 minutes while the tab is open, plus once on load
+checkAndNotify(false);
+setInterval(() => checkAndNotify(false), 30*60*1000);
+</script>
+</body>
+</html>
