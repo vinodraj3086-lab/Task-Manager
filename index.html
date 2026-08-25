@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Daily Task Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Source Sans 3', ui-sans-serif, system-ui, sans-serif;
+    background: #FAF8F4;
+    color: #2A2622;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 32px 20px 60px; }
+  h1 { font-family: 'Fraunces', serif; font-size: 34px; font-weight: 600; margin: 0; }
+  .eyebrow { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: #8A6D1F; font-weight: 600; margin-bottom: 6px; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px,1fr)); gap: 12px; margin: 28px 0; }
+  .card { background: #fff; border: 1px solid #E7E1D3; border-radius: 10px; padding: 14px 16px; }
+  .card .label { font-size: 12px; color: #9b9382; text-transform: uppercase; letter-spacing: .05em; margin-bottom: 4px; }
+  .card .value { font-family: 'Fraunces', serif; font-size: 28px; font-weight: 600; }
+  .panel { background: #fff; border: 1px solid #E7E1D3; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px; }
+  .panel .title { font-size: 13px; font-weight: 600; color: #6b6456; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 10px; }
+  .controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  .pillrow { display: flex; gap: 6px; flex-wrap: wrap; }
+  .pillbtn { padding: 6px 14px; border-radius: 20px; border: 1px solid #E7E1D3; background: #fff; color: #6b6456; font-size: 13px; font-weight: 500; cursor: pointer; }
+  .pillbtn.active { border-color: #2A2622; background: #2A2622; color: #fff; }
+  .pillbtn.freq { border-color: #E7E1D3; }
+  .pillbtn.freq.active { border-color: #6D4E9C; background: #6D4E9C14; color: #6D4E9C; }
+  .addbtn { display: flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; border: none; background: #2E5C8A; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap: 12px; margin-bottom: 14px; }
+  label.field { display: block; font-size: 12.5px; color: #6b6456; font-weight: 600; }
+  .field-inner { margin-top: 5px; }
+  input, select, textarea {
+    width: 100%; padding: 8px 10px; border: 1px solid #E7E1D3; border-radius: 6px;
+    font-size: 14px; font-family: inherit; color: #2A2622; background: #FAF8F4;
+  }
+  textarea { resize: vertical; }
+  .saverow { display: flex; gap: 10px; margin-top: 14px; }
+  .btn-primary { padding: 9px 18px; border-radius: 8px; border: none; background: #2A2622; color: #fff; font-weight: 600; font-size: 14px; cursor: pointer; }
+  .btn-secondary { padding: 9px 18px; border-radius: 8px; border: 1px solid #E7E1D3; background: #fff; color: #6b6456; font-weight: 600; font-size: 14px; cursor: pointer; }
+  table { border-collapse: collapse; width: 100%; background: #fff; border: 1px solid #E7E1D3; border-radius: 10px; overflow: hidden; }
+  th, td { text-align: left; padding: 12px 14px; font-size: 14px; }
+  thead tr { background: #F1EDE3; font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: #6b6456; }
+  tbody tr { border-top: 1px solid #F1EDE3; }
+  tbody tr:hover { background: #F1EDE3; }
+  .pill { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; }
+  .status-select { border: 1px solid #E7E1D3; border-radius: 20px; padding: 5px 10px; font-size: 12.5px; font-weight: 600; background: #fff; cursor: pointer; }
+  .empty { text-align: center; padding: 60px 20px; color: #9b9382; background: #fff; border: 1px dashed #E7E1D3; border-radius: 10px; }
+  .del-btn { border: none; background: none; color: #B4432B; cursor: pointer; font-size: 16px; }
+  .banner { background: #B4432B14; border: 1px solid #B4432B44; color: #B4432B; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; }
+  .reminder-banner { background: #2E5C8A14; border: 1px solid #2E5C8A44; color: #2E5C8A; padding: 10px 14px; border-radius: 6px; margin-bottom: 20px; font-size: 14px; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .reminder-banner button { padding: 6px 12px; border-radius: 6px; border: none; background: #2E5C8A; color: #fff; font-size: 13px; font-weight: 600; cursor: pointer; }
+  @media (max-width: 720px) {
+    .desktop-table { display: none; }
+    .cards { display: block !important; }
+  }
+  @media (min-width: 721px) { .cards { display: none; } }
+  .taskcard { background: #fff; border: 1px solid #E7E1D3; border-radius: 10px; padding: 14px; margin-bottom: 10px; }
+  .taskcard .top { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; color: #9b9382; }
+  .taskcard .action { font-size: 15px; margin-bottom: 10px; }
+  .taskcard .metaRow { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Daily Task Ledger</div>
+  <h1 id="dateHeading"></h1>
+
+  <div id="notifBannerSlot"></div>
+  <div id="errorSlot"></div>
+
+  <div class="stats" id="statsSlot"></div>
+  <div class="panel" id="dailyStatsPanel" style="display:none;">
+    <div class="title">Completions by day</div>
+    <div id="dailyStatsRow" style="display:flex; gap:20px; flex-wrap:wrap; font-size:14px;"></div>
+  </div>
+
+  <div class="controls">
+    <div class="pillrow" id="statusFilterRow"></div>
+    <div class="pillrow" id="freqFilterRow"></div>
+    <button class="addbtn" id="toggleFormBtn">+ Add task</button>
+  </div>
+
+  <div class="panel" id="formPanel" style="display:none;">
+    <div class="form-grid">
+      <label class="field">Date received<div class="field-inner"><input type="date" id="f_dateReceived"></div></label>
+      <label class="field">Priority<div class="field-inner">
+        <select id="f_priority"><option>High</option><option selected>Medium</option><option>Low</option></select>
+      </div></label>
+      <label class="field">Target completion date<div class="field-inner"><input type="date" id="f_completionDate"></div></label>
+      <label class="field">Status<div class="field-inner">
+        <select id="f_status"><option selected>Pending</option><option>In Progress</option><option>Completed</option></select>
+      </div></label>
+      <label class="field">Frequency<div class="field-inner">
+        <select id="f_frequency"><option selected>Daily</option><option>Weekly</option><option>Monthly</option><option>One-time</option></select>
+      </div></label>
+    </div>
+    <label class="field">Daily action item<div class="field-inner"><textarea id="f_action" rows="2" placeholder="What needs to get done?"></textarea></div></label>
+    <div class="saverow">
+      <button class="btn-primary" id="saveTaskBtn">Save task</button>
+      <button class="btn-secondary" id="cancelFormBtn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="tableSlot"></div>
+</div>
+
+<script>
+const PRIORITY = {
+  High: { rank: 0, color: '#B4432B', bg: '#B4432B14' },
+  Medium: { rank: 1, color: '#8A6D1F', bg: '#8A6D1F14' },
+  Low: { rank: 2, color: '#3F6B4F', bg: '#3F6B4F14' },
+};
+const FREQUENCY = {
+  Daily: { color: '#2E5C8A', bg: '#2E5C8A14' },
+  Weekly: { color: '#6D4E9C', bg: '#6D4E9C14' },
+  Monthly: { color: '#8A6D1F', bg: '#8A6D1F14' },
+  'One-time': { color: '#6b6456', bg: '#6b645614' },
+};
+const STATUS_COLORS = {
+  Pending: '#8A6D1F', 'In Progress': '#2E5C8A', Completed: '#3F6B4F', Overdue: '#B4432B',
+};
+const STORAGE_KEY = 'tm_tasks_v1';
+const NOTIF_KEY = 'tm_notif_enabled_v1';
+
+let tasks = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+let filter = 'All';
+let freqFilter = 'All';
+
+function todayISO() { return new Date().toISOString().slice(0,10); }
+function fmtDate(d) {
+  if (!d) return '—';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); render(); }
+
+function computeStatuses() {
+  const t = todayISO();
+  return tasks.map(task => {
+    if (task.status !== 'Completed' && task.completionDate && task.completionDate < t) {
+      return { ...task, status: 'Overdue' };
+    }
+    return task;
+  });
+}
+
+function sortedTasks() {
+  const computed = computeStatuses();
+  return computed.sort((a,b) => {
+    if (a.status === 'Completed' && b.status !== 'Completed') return 1;
+    if (b.status === 'Completed' && a.status !== 'Completed') return -1;
+    const pr = PRIORITY[a.priority].rank - PRIORITY[b.priority].rank;
+    if (pr !== 0) return pr;
+    return (a.completionDate || '9999').localeCompare(b.completionDate || '9999');
+  });
+}
+
+document.getElementById('dateHeading').textContent =
+  "Today's board, " + new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+document.getElementById('f_dateReceived').value = todayISO();
+
+document.getElementById('toggleFormBtn').onclick = () => {
+  const p = document.getElementById('formPanel');
+  p.style.display = p.style.display === 'none' ? 'block' : 'none';
+};
+document.getElementById('cancelFormBtn').onclick = () => {
+  document.getElementById('formPanel').style.display = 'none';
+};
+document.getElementById('saveTaskBtn').onclick = () => {
+  const action = document.getElementById('f_action').value.trim();
+  if (!action) return;
+  const status = document.getElementById('f_status').value;
+  tasks.push({
+    id: Date.now(),
+    dateReceived: document.getElementById('f_dateReceived').value,
+    action,
+    completionDate: document.getElementById('f_completionDate').value,
+    priority: document.getElementById('f_priority').value,
+    status,
+    frequency: document.getElementById('f_frequency').value,
+    completedOn: status === 'Completed' ? todayISO() : null,
+  });
+  document.getElementById('f_action').value = '';
+  document.getElementById('f_completionDate').value = '';
+  document.getElementById('f_dateReceived').value = todayISO();
+  document.getElementById('formPanel').style.display = 'none';
+  save();
+};
+
+function updateStatus(id, status) {
+  tasks = tasks.map(t => t.id === id ? { ...t, status, completedOn: status === 'Completed' ? todayISO() : null } : t);
+  save();
+}
+function removeTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  save();
+}
+window.updateStatus = updateStatus;
+window.removeTask = removeTask;
+
+function render() {
+  const computed = computeStatuses();
+  const sorted = sortedTasks();
+  const today = todayISO();
+
+  // stats
+  const completedToday = computed.filter(t => t.status === 'Completed' && t.completedOn === today).length;
+  const openTotal = computed.filter(t => t.status !== 'Completed').length;
+  const overdue = computed.filter(t => t.status === 'Overdue').length;
+  const highOpen = computed.filter(t => t.priority === 'High' && t.status !== 'Completed').length;
+  document.getElementById('statsSlot').innerHTML = `
+    ${statCard('Completed today', completedToday, '#3F6B4F')}
+    ${statCard('Total open', openTotal, '#2E5C8A')}
+    ${statCard('Overdue', overdue, '#B4432B')}
+    ${statCard('High priority open', highOpen, '#B4432B')}
+  `;
+
+  // daily completions
+  const byDate = {};
+  computed.forEach(t => { if (t.status === 'Completed' && t.completedOn) byDate[t.completedOn] = (byDate[t.completedOn]||0)+1; });
+  const dailyEntries = Object.entries(byDate).sort((a,b)=>b[0].localeCompare(a[0])).slice(0,5);
+  const dsPanel = document.getElementById('dailyStatsPanel');
+  if (dailyEntries.length) {
+    dsPanel.style.display = 'block';
+    document.getElementById('dailyStatsRow').innerHTML = dailyEntries.map(([date,count]) =>
+      `<div><span style="font-weight:700;color:#3F6B4F">${count}</span> <span style="color:#6b6456">on ${fmtDate(date)}</span></div>`
+    ).join('');
+  } else { dsPanel.style.display = 'none'; }
+
+  // filter pills
+  const statuses = ['All','Pending','In Progress','Overdue','Completed'];
+  document.getElementById('statusFilterRow').innerHTML = statuses.map(s =>
+    `<button class="pillbtn ${filter===s?'active':''}" data-status="${s}">${s}</button>`
+  ).join('');
+  document.querySelectorAll('[data-status]').forEach(btn => {
+    btn.onclick = () => { filter = btn.dataset.status; render(); };
+  });
+  const freqs = ['All', ...Object.keys(FREQUENCY)];
+  document.getElementById('freqFilterRow').innerHTML = freqs.map(f =>
+    `<button class="pillbtn freq ${freqFilter===f?'active':''}" data-freq="${f}">${f}</button>`
+  ).join('');
+  document.querySelectorAll('[data-freq]').forEach(btn => {
+    btn.onclick = () => { freqFilter = btn.dataset.freq; render(); };
+  });
+
+  // filtered list
+  let filtered = filter === 'All' ? sorted : sorted.filter(t => t.status === filter);
+  filtered = freqFilter === 'All' ? filtered : filtered.filter(t => t.frequency === freqFilter);
+
+  const tableSlot = document.getElementById('tableSlot');
+  if (filtered.length === 0) {
+    tableSlot.innerHTML = `<div class="empty">No tasks here yet. Add one to get your board started.</div>`;
+    return;
+  }
+
+  const rows = filtered.map((task, idx) => {
+    const sno = idx + 1;
+    return `
+      <tr>
+        <td>${sno}</td>
+        <td>${fmtDate(task.dateReceived)}</td>
+        <td style="max-width:320px;">${escapeHtml(task.action)}</td>
+        <td><span class="pill" style="color:${FREQUENCY[task.frequency]?.color || '#6b6456'};background:${FREQUENCY[task.frequency]?.bg || '#6b645614'}">${task.frequency || 'One-time'}</span></td>
+        <td>${fmtDate(task.completionDate)}</td>
+        <td><span class="pill" style="color:${PRIORITY[task.priority].color};background:${PRIORITY[task.priority].bg}">${task.priority}</span></td>
+        <td>${statusSelect(task)}</td>
+        <td style="text-align:right;"><button class="del-btn" onclick="removeTask(${task.id})">✕</button></td>
+      </tr>`;
+  }).join('');
+
+  tableSlot.innerHTML = `
+    <div class="desktop-table">
+      <table>
+        <thead><tr><th>S.No</th><th>Received</th><th>Action item</th><th>Frequency</th><th>Completion date</th><th>Priority</th><th>Status</th><th></th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+    </div>
+    <div class="cards">
+      ${filtered.map((task, idx) => `
+        <div class="taskcard">
+          <div class="top"><span>#${idx+1} · ${fmtDate(task.dateReceived)}</span><button class="del-btn" onclick="removeTask(${task.id})">✕</button></div>
+          <div class="action">${escapeHtml(task.action)}</div>
+          <div class="metaRow">
+            <span class="pill" style="color:${PRIORITY[task.priority].color};background:${PRIORITY[task.priority].bg}">${task.priority}</span>
+            <span class="pill" style="color:${FREQUENCY[task.frequency]?.color || '#6b6456'};background:${FREQUENCY[task.frequency]?.bg || '#6b645614'}">${task.frequency || 'One-time'}</span>
+            <span style="font-size:12px;color:#6b6456;">Due ${fmtDate(task.completionDate)}</span>
+            ${statusSelect(task)}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+function statusSelect(task) {
+  const color = STATUS_COLORS[task.status] || STATUS_COLORS.Pending;
+  const opts = ['Pending','In Progress','Completed','Overdue'];
+  return `<select class="status-select" style="color:${color}" onchange="updateStatus(${task.id}, this.value)">
+    ${opts.map(o => `<option value="${o}" ${o===task.status?'selected':''}>${o}</option>`).join('')}
+  </select>`;
+}
+function statCard(label, value, accent) {
+  return `<div class="card"><div class="label">${label}</div><div class="value" style="color:${accent}">${value}</div></div>`;
+}
+function escapeHtml(str) {
+  const d = document.createElement('div'); d.textContent = str; return d.innerHTML;
+}
+
+// ---------- Reminder / notification logic ----------
+function openTasksToday() {
+  const computed = computeStatuses();
+  const today = todayISO();
+  return computed.filter(t => t.status !== 'Completed' && (t.completionDate === today || (t.frequency === 'Daily')));
+}
+
+function renderNotifBanner() {
+  const slot = document.getElementById('notifBannerSlot');
+  const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+  const enabled = localStorage.getItem(NOTIF_KEY) === '1';
+  if (perm === 'granted' && enabled) {
+    slot.innerHTML = `<div class="reminder-banner">🔔 Pop-up reminders are ON — you'll get a browser alert for open daily tasks while this tab is open. <button id="disableNotifBtn">Turn off</button></div>`;
+    document.getElementById('disableNotifBtn').onclick = () => { localStorage.setItem(NOTIF_KEY,'0'); renderNotifBanner(); };
+  } else if (perm === 'unsupported') {
+    slot.innerHTML = '';
+  } else {
+    slot.innerHTML = `<div class="reminder-banner">Want a pop-up reminder for today's open tasks? <button id="enableNotifBtn">Enable reminders</button></div>`;
+    document.getElementById('enableNotifBtn').onclick = () => {
+      Notification.requestPermission().then(p => {
+        if (p === 'granted') { localStorage.setItem(NOTIF_KEY,'1'); checkAndNotify(true); }
+        renderNotifBanner();
+      });
+    };
+  }
+}
+
+let lastNotifiedCount = -1;
+function checkAndNotify(force) {
+  const enabled = localStorage.getItem(NOTIF_KEY) === '1';
+  if (!enabled || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const open = openTasksToday();
+  if (open.length === 0) return;
+  if (!force && open.length === lastNotifiedCount) return;
+  lastNotifiedCount = open.length;
+  const n = new Notification('Open tasks for today', {
+    body: `You have ${open.length} open task${open.length>1?'s':''} to complete today.`,
+  });
+  n.onclick = () => window.focus();
+}
+
+renderNotifBanner();
+render();
+// Check every 30 minutes while the tab is open, plus once on load
+checkAndNotify(false);
+setInterval(() => checkAndNotify(false), 30*60*1000);
+</script>
+</body>
+</html>
